@@ -7,11 +7,11 @@ import io
 import sys
 import xml.dom.minidom
 import xml.etree.ElementTree
-from urllib import quote
-from xml2dict import Xml2Dict
+from urllib.parse import quote
+from .xml2dict import Xml2Dict
 from dicttoxml import dicttoxml
-from cos_exception import CosClientError
-from cos_exception import CosServiceError
+from .cos_exception import CosClientError
+from .cos_exception import CosServiceError
 
 SINGLE_UPLOAD_LENGTH = 5*1024*1024*1024  # 单次上传文件最大为5G
 # kwargs中params到http headers的映射
@@ -50,7 +50,7 @@ maplist = {
 
 
 def to_unicode(s):
-    if isinstance(s, unicode):
+    if isinstance(s, str):
         return s
     else:
         return s.decode('utf-8')

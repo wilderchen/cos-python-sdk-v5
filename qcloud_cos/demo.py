@@ -29,7 +29,7 @@ with open('test.txt', 'rb') as fp:
         CacheControl='no-cache',
         ContentDisposition='download.txt'
     )
-    print response['ETag']
+    print(response['ETag'])
 
 # 字节流 简单上传
 response = client.put_object(

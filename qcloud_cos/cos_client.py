@@ -11,15 +11,16 @@ import copy
 import xml.dom.minidom
 import xml.etree.ElementTree
 from requests import Request, Session
-from urllib import quote
-from streambody import StreamBody
-from xml2dict import Xml2Dict
+from urllib.parse import quote
+from .streambody import StreamBody
+from .xml2dict import Xml2Dict
 from dicttoxml import dicttoxml
-from cos_auth import CosS3Auth
-from cos_comm import *
-from cos_threadpool import SimpleThreadPool
-from cos_exception import CosClientError
-from cos_exception import CosServiceError
+from .cos_auth import CosS3Auth
+from .cos_comm import *
+from .cos_threadpool import SimpleThreadPool
+from .cos_exception import CosClientError
+from .cos_exception import CosServiceError
+from importlib import reload
 
 logging.basicConfig(
                 level=logging.INFO,
@@ -29,7 +30,7 @@ logging.basicConfig(
                 filemode='w')
 logger = logging.getLogger(__name__)
 reload(sys)
-sys.setdefaultencoding('utf-8')
+# sys.setdefaultencoding('utf-8')
 
 
 class CosConfig(object):
@@ -219,7 +220,7 @@ class CosS3Client(object):
         """
         headers = mapped(kwargs)
         params = {}
-        for key in headers.keys():
+        for key in list(headers):
             if key.startswith("response"):
                 params[key] = headers[key]
                 headers.pop(key)
@@ -1233,7 +1234,7 @@ class CosS3Client(object):
         :param md5_lst(list): 保存上传成功分块的MD5和序号.
         :return: None.
         """
-        print part_number
+        print(part_number)
         rt = self.upload_part_copy(bucket, key, part_number, upload_id, copy_source, copy_source_range)
         md5_lst.append({'PartNumber': part_number, 'ETag': rt['ETag']})
         return None

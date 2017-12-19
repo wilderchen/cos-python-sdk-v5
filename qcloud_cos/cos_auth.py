@@ -5,11 +5,10 @@ import time
 import urllib
 import hashlib
 import logging
-from urllib import quote
-from urlparse import urlparse
+from urllib.parse import quote
+from urllib.parse import urlparse
 from requests.auth import AuthBase
 logger = logging.getLogger(__name__)
-
 
 def filter_headers(data):
     """只设置host content-type 还有x开头的头部.
@@ -30,7 +29,7 @@ def to_string(data):
     :param data(unicode|string): 待转换的unicode|string.
     :return(string): 转换后的string.
     """
-    if isinstance(data, unicode):
+    if isinstance(data, str):
         return data.encode('utf8')
     return data
 
@@ -59,26 +58,24 @@ class CosS3Auth(AuthBase):
         format_str = "{method}\n{host}\n{params}\n{headers}\n".format(
             method=r.method.lower(),
             host=path,
-            params=urllib.urlencode(sorted(uri_params.items())),
-            headers='&'.join(map(lambda (x, y): "%s=%s" % (x, y), sorted(headers.items())))
+            params=urllib.parse.urlencode(sorted(uri_params.items())),
+            headers='&'.join(map(lambda x: "%s=%s" % (x[0], x[1]), sorted(headers.items())))
         )
         logger.debug("format str: " + format_str)
-
         start_sign_time = int(time.time())
         sign_time = "{bg_time};{ed_time}".format(bg_time=start_sign_time-60, ed_time=start_sign_time+self._expire)
         sha1 = hashlib.sha1()
-        sha1.update(format_str)
+        sha1.update(format_str.encode('utf-8'))
 
         str_to_sign = "sha1\n{time}\n{sha1}\n".format(time=sign_time, sha1=sha1.hexdigest())
         logger.debug('str_to_sign: ' + str(str_to_sign))
-        sign_key = hmac.new(self._secret_key, sign_time, hashlib.sha1).hexdigest()
-        sign = hmac.new(sign_key, str_to_sign, hashlib.sha1).hexdigest()
+        sign_key = hmac.new(self._secret_key, sign_time.encode('utf-8'), hashlib.sha1).hexdigest()
+        sign = hmac.new(sign_key.encode('utf-8'), str_to_sign.encode('utf-8'), hashlib.sha1).hexdigest()
         logger.debug('sign_key: ' + str(sign_key))
         logger.debug('sign: ' + str(sign))
         sign_tpl = "q-sign-algorithm=sha1&q-ak={ak}&q-sign-time={sign_time}&q-key-time={key_time}&q-header-list={headers}&q-url-param-list={params}&q-signature={sign}"
-
         r.headers['Authorization'] = sign_tpl.format(
-            ak=self._secret_id,
+            ak=self._secret_id.decode('utf-8'),
             sign_time=sign_time,
             key_time=sign_time,
             params=';'.join(sorted(map(lambda k: k.lower(), uri_params.keys()))),
